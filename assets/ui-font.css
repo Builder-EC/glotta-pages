@@ -1,0 +1,2 @@
+/* the face the body text is set in; it serves only the footer and the documents, so the page asks for it after it has loaded */
+@font-face{font-family:"Instrument Sans";src:url(fonts/instrument-sans.woff2) format("woff2");font-weight:400 700;font-display:swap}

@@ -1,0 +1,365 @@
+/* Glotta. An Ivory page that opens on the launch film's own wall of covers and keeps the film's manners: type that rises
+   from a mask, pictures that grow from a point. Plain scrolling: nothing is pinned and nothing follows the scroll.
+   Each section arrives once, as it comes into view. */
+@font-face{font-family:"Space Grotesk";src:url(fonts/space-grotesk.woff2) format("woff2");font-weight:300 700;font-display:swap}
+:root{
+  --ivory:#F2EDE0; /* the brand films' own ground, so a film never shows as a box */
+  --night:#100F1C;--night2:#1C1A2E;--surface:#E6DECB;--coral:#FF7F5C;--deep:#AD3A1A;--ink:#211B15;--soft:#574B40;--moon:#F4EEE4;--softn:#CFCCDB;--line:#D9CFBA;
+  --display:"Space Grotesk",system-ui,sans-serif;--ui:"Instrument Sans",system-ui,-apple-system,sans-serif;
+  --edge:clamp(20px,5.5vw,88px);--ease:cubic-bezier(.16,1,.3,1);--snap:cubic-bezier(.3,1.35,.5,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:var(--ui);font-size:17px;line-height:1.5;overflow-x:hidden}
+img,video{display:block;max-width:100%}
+a{color:var(--deep);text-underline-offset:.18em}
+:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--moon);padding:10px 14px;z-index:99;border-radius:8px}
+.skip:focus{left:8px}
+h1,h2{font-family:var(--display);font-weight:600;letter-spacing:-.035em;line-height:1.02;margin:0;text-wrap:balance}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+.bar{display:flex;justify-content:space-between;align-items:center;padding:20px var(--edge) 0;max-width:1440px;margin:0 auto;position:relative;z-index:5}
+.bar .lock{height:34px;width:auto}
+.bar .to{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;padding:8px 2px}
+
+/* a film of the brand's: only its lines are shown; it keeps the darker of itself and the page, so no box shows */
+.film{position:relative;overflow:hidden;width:100%;aspect-ratio:var(--bw)/var(--bh);background:var(--ivory);isolation:isolate}
+.film .still{position:absolute;inset:0;width:100%;height:100%;max-width:none}
+.film.playing .still{visibility:hidden}
+/* two stills: the film's end (the whole line with its highlight) for a page without the script or whose films do not play, and its first
+   frame (.pre), which the script's page shows until the film plays: the highlight is then drawn once and never taken away */
+.film .pre{display:none}
+.js .film:not(.refused) .pre{display:block}
+.js .film:not(.refused) .still:not(.pre){display:none}
+.film video{position:absolute;max-width:none;width:calc(100% * var(--fw) / var(--bw));left:calc(-100% * var(--bx) / var(--bw));top:calc(-100% * var(--by) / var(--bh));mix-blend-mode:darken}
+
+/* ---------- the phone: a dark titanium body, its island, its buttons. Every length is a share of its own width. ---------- */
+.phone{--u:1cqw;position:relative;container-type:inline-size;aspect-ratio:432/902;flex:none;
+  transform:translate3d(0,var(--ty,0%),0) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) rotateZ(var(--rz,0deg));will-change:transform}
+.phone.land{--u:calc(1cqw * 432 / 902);aspect-ratio:902/432}
+/* a phone in one half of the page leans toward the middle (its pose, set in build_pages.py); on a phone-width page the phones stand centred and keep the lean they had */
+@media(max-width:899px){.phone.n{--ry:var(--ryn)!important;--rz:var(--rzn)!important;--ex:var(--exn)!important}}
+.phone .body{position:absolute;inset:0;border-radius:calc(var(--u)*17.6);padding:calc(var(--u)*1.5);
+  background:linear-gradient(135deg,#8583a0 0%,#3a3954 14%,#1b1a2f 46%,#2d2c45 74%,#74728e 100%);
+  box-shadow:
+    calc(var(--ex,1)*var(--u)*.35) calc(var(--u)*.35) 0 #34334d,
+    calc(var(--ex,1)*var(--u)*.7) calc(var(--u)*.7) 0 #2c2b44,
+    calc(var(--ex,1)*var(--u)*1.05) calc(var(--u)*1.05) 0 #25243b,
+    calc(var(--ex,1)*var(--u)*1.4) calc(var(--u)*1.4) 0 #1f1e33,
+    calc(var(--ex,1)*var(--u)*1.75) calc(var(--u)*1.75) 0 #19182b,
+    calc(var(--ex,1)*var(--u)*2.1) calc(var(--u)*2.1) 0 #131223,
+    calc(var(--ex,1)*var(--u)*9) calc(var(--u)*16) calc(var(--u)*20) calc(var(--u)*-6) rgba(5,4,14,.55),
+    calc(var(--ex,1)*var(--u)*3) calc(var(--u)*6) calc(var(--u)*9) calc(var(--u)*-3) rgba(5,4,14,.45)}
+.phone .bezel{width:100%;height:100%;border-radius:calc(var(--u)*16.1);background:#04040a;padding:calc(var(--u)*1.85);box-shadow:inset 0 0 0 calc(var(--u)*.22) rgba(255,255,255,.1)}
+.phone .screen{position:relative;width:100%;height:100%;border-radius:calc(var(--u)*14.25);overflow:hidden;background:var(--ivory);isolation:isolate}
+.phone .screen>img,.phone .screen>video{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover}
+/* a screen that changes is never cross-faded (two pages of text would show through each other): the new one grows from a point or a line */
+/* a recording that has ended fades out over its still (its first frame), starts again and fades back in: no jump */
+/* a recording: the whole screen as a still, in the picture's own shape and place (as object-fit:cover would set it, without a transform), and
+   over it the video, which is only the part of the screen that changes (build_pages.py clip()). The video never reaches the screen's edge:
+   Safari cuts a video to the rounded screen of a phone turned in space in ragged steps (Koko's iPhone, 12 Oct). The glare would become a layer
+   over the video and be cut the same way, so a phone with a recording has none. */
+.phone .screen>.shot{position:absolute;left:0;width:100%;aspect-ratio:804/1748;top:50%;margin-top:calc(-50% * 1748 / 804)}
+.shot>img{position:absolute;inset:0;width:100%;height:100%;max-width:none}
+/* its sides and foot fade into the still over a few pixels: a browser may draw a video's flat ground a shade or two off a picture's (Safari
+   does), which would show as a faint rectangle. Its top needs none: it starts on the rule under the Player's head (clips.json). */
+.shot>video{position:absolute;max-width:none;object-fit:fill;transition:opacity .5s ease;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 2.4%,#000 97.6%,transparent),linear-gradient(180deg,#000 98.6%,transparent);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent,#000 2.4%,#000 97.6%,transparent),linear-gradient(180deg,#000 98.6%,transparent);mask-composite:intersect}
+.shot>video.out{opacity:0}
+.phone .screen>.shot~.glare{display:none}
+.phone .screen>.step{clip-path:var(--from,inset(100% 0 0 0));transition:clip-path .75s var(--ease)}
+.phone .screen>.step.show{clip-path:var(--to,inset(0 0 0 0))}
+.phone.cut .screen>.step{transition:none}
+/* screens in a deck: the next show's Player comes up from the foot of the screen over the one playing, as the app's Player does when an
+   episode is started (the app presents it as a full-screen cover; the curve is the system's own for that). Without the script only the first stands. */
+.phone .screen>.deck{position:absolute;inset:0}
+.deck .pl{position:absolute;inset:0;visibility:hidden}
+.deck .sbar img{display:block;width:100%;height:auto;max-width:none}
+.deck .pl .shot{position:relative;width:100%;aspect-ratio:804/1748}   /* the sheet's picture, from the screen's head down, and its recording over it */
+.deck .pl video{visibility:hidden}                                       /* a still while it comes up and until its recording really plays */
+.deck .pl.play video{visibility:visible}
+.phone .screen>.deck~.glare{display:none}
+.deck .pl.under{visibility:visible;z-index:1}
+/* the rising sheet: the script sets --up from 1 (under the screen's foot) to 0 (in place), frame by frame, on the system's curve. A plain shift and
+   no CSS transition: a transition would make the sheet a layer of its own, which Safari cuts to the phone's rounded screen in ragged steps. */
+.deck .pl.up{visibility:visible;z-index:2;transform:translate(0,calc(var(--up,1) * 101%));box-shadow:0 0 calc(var(--u)*7) rgba(16,14,26,.22)}
+/* the clock and the battery are the system's: they stay while a Player comes up under them. Each sheet's own are covered with the Player's ground, and one strip of them stands above the deck. */
+.deck .pl::before{content:"";position:absolute;inset:0 0 auto 0;height:5.4%;background:#F5EEE3;z-index:1}
+.deck .sbar{position:absolute;inset:0 0 auto 0;height:5.4%;overflow:hidden;z-index:3;background:#F5EEE3}
+.phone .island{position:absolute;z-index:3;left:50%;top:calc(var(--u)*3.25);width:calc(var(--u)*29.1);height:calc(var(--u)*8.5);margin-left:calc(var(--u)*-14.55);border-radius:99px;background:#000}
+.phone .island::after{content:"";position:absolute;right:calc(var(--u)*2.3);top:50%;width:calc(var(--u)*2.9);height:calc(var(--u)*2.9);margin-top:calc(var(--u)*-1.45);border-radius:50%;background:radial-gradient(circle at 36% 34%,#2c3350 0,#0c0d18 62%)}
+.phone.land .island{left:calc(var(--u)*3.25);top:50%;width:calc(var(--u)*8.5);height:calc(var(--u)*29.1);margin:calc(var(--u)*-14.55) 0 0}
+.phone.land .island::after{right:auto;left:50%;top:calc(var(--u)*2.3);margin:0 0 0 calc(var(--u)*-1.45)}
+.phone .glare{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(118deg,rgba(255,255,255,.085) 0%,rgba(255,255,255,0) 30%)}
+/* the side buttons sit in the body's thick edge, the one --ex names, and only there: the edge turned away shows none. In portrait the
+   action and volume buttons (a, b, c) are on the left edge and the power button (d) on the right; on its side the phone shows its foot
+   edge (a, b, c) and never its top. Each is drawn as part of the edge: about the middle of its depth, shifted down with it. */
+.phone .k{position:absolute;z-index:1;width:calc(var(--u)*.9);border-radius:calc(var(--u)*.4);background:linear-gradient(90deg,#55536e,#1e1d31);display:none}
+.phone .k.a{top:calc(17.6% + var(--u)*1.1);height:3.5%}.phone .k.b{top:calc(24.4% + var(--u)*1.1);height:6.3%}.phone .k.c{top:calc(32.3% + var(--u)*1.1);height:6.3%}
+.phone .k.d{top:calc(27.2% + var(--u)*1.1);height:10.4%}
+.phone .k.a,.phone .k.b,.phone .k.c{left:calc(var(--u)*-1.55)}.phone .k.d{right:calc(var(--u)*-1.55)}
+.phone.er:not(.land) .k.d{display:block}.phone.el:not(.land) .k.a,.phone.el:not(.land) .k.b,.phone.el:not(.land) .k.c{display:block}
+@media(max-width:899px){.phone.n.er:not(.land) .k.d{display:none}.phone.n.el:not(.land) .k.a,.phone.n.el:not(.land) .k.b,.phone.n.el:not(.land) .k.c{display:none}.phone.n.ern:not(.land) .k.d{display:block}.phone.n.eln:not(.land) .k.a,.phone.n.eln:not(.land) .k.b,.phone.n.eln:not(.land) .k.c{display:block}}
+.phone.land .k{width:auto;height:calc(var(--u)*.9);background:linear-gradient(0deg,#55536e,#1e1d31);display:block}
+.phone.land .k.a{left:calc(17.6% + var(--ex,1)*var(--u)*1.05);width:3.5%;top:auto;bottom:calc(var(--u)*-1.55)}.phone.land .k.b{left:calc(24.4% + var(--ex,1)*var(--u)*1.05);width:6.3%;top:auto;bottom:calc(var(--u)*-1.55)}.phone.land .k.c{left:calc(32.3% + var(--ex,1)*var(--u)*1.05);width:6.3%;top:auto;bottom:calc(var(--u)*-1.55)}
+.phone.land .k.d{display:none}
+/* Full Screen's text sizes: the text layers scale inside the page's own column; the rail of controls stays as it is */
+/* Full Screen on its side: the app's own screens as plain pictures in one place, one of them on show (site.js zoom()). Plain pictures are
+   painted with the screen and cut cleanly to its rounded shape; a video, a canvas or anything moved by a CSS transition is a layer of its own in
+   Safari, which cuts it in ragged steps on a phone turned in space (Koko's iPhone, 12 Oct). So nothing in here has a transform or a transition. */
+.phone.land .screen{background:#04040a}   /* the bezel's own black, behind the Light page and the Dark one alike */
+.phone .flip{position:absolute;inset:0}
+.phone .flip img{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;visibility:hidden}
+.phone .flip img.on{visibility:visible}
+/* the Player's list rebuilt from rows: the transcript is written row by row, then each translation opens under its sentence */
+.tlist{position:absolute;left:0;right:0;overflow:hidden;z-index:1}
+.tlist img{display:block;width:100%;height:auto;max-width:none;margin-bottom:-.5px}
+.tx{display:grid;grid-template-rows:1fr}
+.tx>div{overflow:hidden;min-height:0}
+/* the partial row: the foot of the sentence before, on show only while the translations are closed; it is not there at all without the script */
+.tlist .part{display:none}
+.px{display:grid;grid-template-rows:1fr}
+.px>div{overflow:hidden;min-height:0}
+.tbtn{position:absolute;z-index:2}
+.tbtn img{display:block;width:100%;height:100%}
+.js .tlist .trow{transition:padding-bottom .7s var(--ease),opacity .45s ease,transform .6s var(--ease);transition-delay:calc(var(--k) * 70ms)}
+.js .tlist .tx{transition:grid-template-rows .7s var(--ease);transition-delay:calc(var(--k) * 70ms)}
+.js .tlist .part{display:block;padding-bottom:0;transition:opacity .45s ease,transform .6s var(--ease)}
+.js .tlist .px{transition:grid-template-rows .7s var(--ease);transition-delay:calc(var(--k) * 70ms)}
+.js .tlist.open .px{grid-template-rows:0fr}
+.js .tlist:not(.open) .trow{padding-bottom:var(--pad)}
+.js .tlist:not(.open) .tx{grid-template-rows:0fr}
+.js .tlist:not(.written) .trow{opacity:0;transform:translateY(10px)}
+/* rings, as the film marks a touch: one under each of two fingers that spread and close (--pinch, 0 to 1; shown by --rings), and one on
+   the page's own Light and Dark button (--tap). The script sets the three from the clip's own clock (site.js zoom()). */
+.phone .ring{position:absolute;z-index:4;left:45%;top:50%;width:9%;aspect-ratio:1;margin:-4.5% 0 0 -4.5%;border-radius:50%;border:calc(var(--u)*.5) solid var(--coral);background:rgba(255,127,92,.16);opacity:var(--rings,0);pointer-events:none}
+.phone .ring.a{transform:translate(calc(-90% - 210% * var(--pinch,0)),calc(60% + 110% * var(--pinch,0)))}
+.phone .ring.b{transform:translate(calc(90% + 210% * var(--pinch,0)),calc(-60% - 110% * var(--pinch,0)))}
+.phone .ring.t{left:86.9%;top:86.2%;width:7%;margin:-3.5% 0 0 -3.5%;opacity:var(--tap,0)}
+
+/* ---------- sections ---------- */
+.sec{max-width:1440px;margin:0 auto;padding:clamp(44px,7vw,110px) var(--edge);display:grid;gap:clamp(28px,4vw,64px);align-items:center}
+.sec h2{font-size:clamp(40px,5.2vw,86px)}
+.sec h2 .n{color:var(--deep);white-space:nowrap}
+.sec .sub{font-size:clamp(19px,1.9vw,28px);line-height:1.35;margin:18px 0 0;color:var(--soft);max-width:32ch;text-wrap:balance}
+.plus{color:var(--deep);font-weight:600}
+.soon{font-family:var(--display);font-weight:600;letter-spacing:-.01em;font-size:clamp(16px,1.3vw,19px);margin:22px 0 0}
+
+/* ---------- the wall of covers, as the launch film builds it: a grid from edge to edge, clearings for the lines, the phone standing on it ---------- */
+.wallsec{max-width:none;padding:0;display:block;overflow:hidden;container-type:inline-size;margin:clamp(12px,1.4vw,20px) 0 clamp(20px,3vw,44px)}
+.wall{position:relative;--cols:13;--rows:7;--over:108;--cell:calc(var(--over) * 1cqw / var(--cols));--gap:calc(var(--cell) * .118);
+  width:calc(var(--over) * 1cqw);margin-left:calc((100 - var(--over)) * .5cqw);height:calc(var(--cell) * var(--rows));
+  display:grid;grid-template-columns:repeat(var(--cols),var(--cell));grid-auto-rows:var(--cell);grid-auto-flow:row dense}
+.cv{position:relative;width:calc(var(--cell) - var(--gap));height:calc(var(--cell) - var(--gap));margin:calc(var(--gap) / 2);border-radius:12%;overflow:hidden;background:var(--surface)}
+.cv img{position:absolute;inset:0;width:100%;height:100%;transition:transform .42s var(--ease)}
+.cv img+img{transform:translateY(100%)}
+.cv.roll img{transform:translateY(-100%)}.cv.roll img+img{transform:none}
+.cv img.gone{visibility:hidden}
+/* two screens of one wall, and the only wall of the page. First: Glotta's name and its promise in a clearing at the middle, covers
+   all round. Second: the phone at the left, which fills from the covers beside it, and the line about discovery at the right. */
+#hero{margin-block:0}#discover{margin-top:0}
+/* the promise stands at the middle of the first window: the wall is set down, or cut at its head, by what that takes */
+#hero .wall{margin-top:clamp(12px,calc(50svh - var(--cell) * 3.5),74px)}
+.clearing{display:grid;align-content:center}
+.wall.one .clearing{grid-column:3/span 9;grid-row:3/span 3;justify-items:center}
+.lead{width:min(100%,calc(var(--cell) * 7.2));display:grid;justify-items:center;gap:calc(var(--cell) * .15);text-align:center}
+.lead h1{margin:0;line-height:0}
+.lead .lock{height:calc(var(--cell) * .5);width:auto}
+.lead .soon{margin:0}
+.film.tall{display:none}
+/* a wide page: Discover's wall has 9 rows, so a full row of covers stands above the phone and one below it, a column at each side, and the line has three rows above and three below (guidelines section 9, item 7; Koko, 15 October about 19:58) */
+.wall.two{--rows:9}
+.wall.two .hole{grid-column:2/span 4;grid-row:2/span 7}
+.wall.two .clearing{grid-column:7/span 7;grid-row:4/span 3;padding-left:calc(var(--cell) * .35)}
+@media(min-width:900px){#discover .wall.two .cv[hidden]{display:block}}   /* the extra covers the store's frame shows stand in the new rows of a wide page */
+.clearing h2{font-size:calc(var(--cell) * .66);text-wrap:initial}
+/* the phone stands in its hole with the same air on every side as the line has in its clearing: about a third of a cover */
+.hole{position:relative;z-index:2;display:grid;place-items:center;perspective:1600px}
+.hole .phone{width:75%}
+@media(max-width:899px){   /* tablets upright */
+  .wall{--cols:8;--over:114}
+  .wall.one{--rows:8}.wall.two{--rows:11}
+  .wall.one .clearing{grid-column:1/-1;grid-row:3/span 3}
+  .lead{width:min(86cqw,calc(var(--cell) * 6.4))}
+  .wall.two .clearing{grid-column:1/-1;grid-row:2/span 2;padding:0 calc((var(--over) - 100) * .5cqw + var(--edge))}
+  .clearing h2{font-size:calc(var(--cell) * .5)}
+  .wall.two .hole{grid-column:3/span 4;grid-row:4/span 7}
+  .hole .phone{width:76%}
+}
+@media(max-width:599px){   /* phones */
+  .wall.one{--rows:14}.wall.two{--rows:13}
+  .wall.one .clearing{grid-row:4/span 6}
+  #hero .wall{margin-top:clamp(calc(var(--cell) * -2),calc(50svh - var(--cell) * 6),var(--cell))}
+  .lead{width:min(84cqw,calc(var(--cell) * 5.4))}
+  .lead .lock{height:calc(var(--cell) * .66)}
+  .film.tall{display:block}.film.wide{display:none}
+  .wall.two .clearing{grid-row:2/span 3}
+  .clearing h2{font-size:calc(var(--cell) * .62)}
+  .wall.two .hole{grid-row:5/span 8}
+  .hole .phone{width:94%}
+}
+/* the first phone: it starts with Glotta's name alone; as the page is scrolled the Library's own furniture comes up, covers leave the
+   wall and fly to their places, and the phone then turns to its pose. The script sets --s, --c and --l from the scroll. */
+.phone .splash{position:absolute;inset:0;display:grid;place-items:center;background:var(--ivory)}
+.phone .splash img{width:56%;height:auto}
+.phone.hero .chrome{display:none}
+.js .phone.hero .chrome{display:block;opacity:var(--c,0)}
+.js .phone.hero .lib{opacity:var(--l,0)}
+.js .phone.hero .splash img{opacity:var(--s,1);transform:scale(calc(.9 + .1 * var(--s,1)))}
+.fly{position:absolute;z-index:6;max-width:none;border-radius:10.5%;transform-origin:0 0;will-change:transform;visibility:hidden;pointer-events:none}
+.cv img.gone{visibility:hidden}
+
+/* ---------- a stage: the place a phone stands in. Its room is Night for the app's light screens and light for its Dark ones ---------- */
+.stage{position:relative;display:grid;place-items:center;aspect-ratio:1/1.06;perspective:1600px}
+.room{position:absolute;inset:0;border-radius:clamp(28px,3.4vw,56px);background:var(--night);transition:background-color .7s var(--ease);perspective:1600px;display:grid;place-items:center}
+.room.clip{overflow:hidden;isolation:isolate}
+.room.top{align-items:start;padding-top:8%}
+.room.base{grid-template-rows:minmax(0,1fr)}.room.base .phone{align-self:end}
+.stage.light .room{background:var(--surface)}
+.stage>.phone{z-index:1}
+.stage .phone{width:52%}
+.stage.zoom .phone{width:84%}
+.stage.tall{aspect-ratio:1/1.16}
+.stage.wide{aspect-ratio:1/.84}
+.stage.cards{aspect-ratio:1/1.02}
+.stage.cut{aspect-ratio:1/1.04}
+/* a disc: the phone stands whole in front of a Night circle, its shows' covers around it */
+.stage.disc{aspect-ratio:1/1.06}
+.stage.disc .room{inset:9% 3% auto 3%;aspect-ratio:1;border-radius:50%}
+.stage.disc .phone{width:50%}
+/* the Playback sheet, close: the phone stands to the left so three covers can carry their own speeds beside it */
+.stage.sheet .room{justify-items:start;padding-left:7%}.stage.sheet .phone{width:66%}
+/* things that float beside a phone: covers, a line lifted off the screen */
+.float{position:absolute;z-index:2;left:var(--x);top:var(--y);width:var(--s,22%);transform:rotate(var(--r,0deg));will-change:transform}
+.float.back{z-index:0}   /* behind the phone: nothing stands in front of a phone or of what its screen shows */
+.float img{width:100%;height:auto;border-radius:12%;box-shadow:0 22px 34px -16px rgba(5,4,14,.6),0 6px 12px -6px rgba(5,4,14,.4)}
+/* the saved cards lie one over the next, the first on top, so each throws its shadow on the one under it and reads as a card of its own */
+.float.card{z-index:calc(6 - var(--k,0))}
+.float.card img{border-radius:clamp(12px,1.5vw,22px);box-shadow:0 26px 44px -20px rgba(0,0,0,.8),0 8px 16px -8px rgba(0,0,0,.5)}
+.float .tag{position:absolute;right:-9%;top:-9%;font-family:var(--display);font-weight:600;font-size:clamp(15px,2.4vw,26px);letter-spacing:-.02em;line-height:1;background:var(--ink);color:var(--moon);padding:.42em .62em;border-radius:99px;box-shadow:0 0 0 2px var(--ivory),0 10px 18px -8px rgba(5,4,14,.55)}
+.float.tl .tag{right:auto;left:-9%}   /* a cover at the phone's left carries its tag on its outer corner */
+
+/* ---------- bands: every section after the wall is a ground from edge to edge, its words in one half and its picture in the other, and the
+   halves change sides from band to band (flip: the picture at the left). Grounds: Ivory and the app's own sand in turn, Night for Read Along.
+   A light band keeps a Night disc or room behind what it shows, so the app's light screens stand out from it. ---------- */
+.band{max-width:none;background:var(--night);color:var(--moon);padding:0;margin-block:0;overflow:hidden}
+.band .in{max-width:1440px;margin:0 auto;padding-inline:var(--edge);display:grid;gap:clamp(28px,4vw,64px);align-items:center;width:100%}
+.band .txt{padding-block:clamp(44px,7vw,110px)}
+.band .sub{color:var(--softn)}.band .plus{color:var(--coral)}
+.band.sand{background:var(--surface);color:var(--ink)}
+.band.ivory{background:var(--ivory);color:var(--ink)}
+/* the app's own label badge for Plus (DESIGN 12.1: a capsule, Accent fill, "PLUS" in the Badge role), over the headline of a band whose feature is Plus */
+.tier{margin:0 0 clamp(12px,1.3vw,18px);line-height:1}
+.tier span{display:inline-block;font-family:var(--ui);font-weight:600;font-size:clamp(11px,.95vw,13px);letter-spacing:.08em;text-transform:uppercase;line-height:1;padding:.5em .72em .44em;border-radius:99px;background:var(--deep);color:var(--moon)}
+.band:not(.sand):not(.ivory) .tier span{background:var(--coral);color:var(--night)}
+.band.sand .sub,.band.ivory .sub{color:var(--soft)}.band.sand .plus,.band.ivory .plus{color:var(--deep)}
+.band .stage{aspect-ratio:auto;padding-block:clamp(40px,6vw,90px)}
+.band .room{display:none}
+.band .phone{width:50%}   /* every upright phone on the page is this wide: half of its half */
+/* a band whose picture is a disc, the cards' room or the turned phone keeps that stage's own shape, with the band's air above and below it */
+.band .stage.disc,.band .stage.cards,.band .stage.lands{padding-block:0;margin-block:clamp(40px,6vw,90px)}
+.band .stage.disc{aspect-ratio:1/1.06}
+.band .stage.cards{aspect-ratio:1/1.02}
+.band .stage.disc .room,.band .stage.cards .room,.band .stage.lands .room{display:grid}
+/* the turned phone: as wide as its half, before a disc as the upright phones have (Night behind the Light page, sand behind the Dark one) */
+.band .stage.lands{aspect-ratio:1/.84}
+.band .stage.lands .room{inset:50% auto auto 10%;width:80%;aspect-ratio:1;border-radius:50%;translate:0 -50%}
+.band .stage.lands .phone{width:100%}
+/* a phone that runs off the band's foot */
+.stage.run{aspect-ratio:1/1.02;min-height:0;grid-template-rows:minmax(0,1fr);align-items:start;align-self:end;padding:clamp(40px,6vw,90px) 0 0}
+.stage.run .phone{width:78%}
+@media(min-width:900px){.band .in{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.band.flip .txt{order:2}}   /* flip: the phone at the left, so the sections go on changing sides down the page */
+@media(max-width:899px){.band .txt{padding-block:clamp(44px,7vw,110px) 0}.band .stage .phone,.band .stage.disc .phone{width:56%}.band .stage.disc{aspect-ratio:1/1.2}.band .stage.cards{aspect-ratio:1/1.04}.stage.run{aspect-ratio:1/1.12;padding-top:8px}.stage.run .phone{width:84%}}
+
+.duo{display:grid;gap:clamp(22px,4vw,60px);align-items:center}
+@media(min-width:900px){.duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+
+@media(max-width:899px){.stage,.stage.tall,.stage.wide{aspect-ratio:1/1.14}.stage .phone{width:62%}.stage.zoom .phone{width:88%}.stage.sheet .phone{width:70%}.stage.disc{aspect-ratio:1/1.14}.stage.disc .phone{width:54%}.stage.cards{aspect-ratio:1/1.04}}
+/* the Playback sheet, shown with its head: the phone's island and status bar inside the room, the phone standing on the room's foot and cut there
+   just under the Trim Silence row (--ty sets how far its foot is sunk); the caption under that row stays out of sight */
+.stage.cut .room{padding-left:9%}
+.stage.cut .phone{width:50%}
+@media(max-width:899px){.stage.cut{aspect-ratio:1/1.14}.stage.cut .phone{width:56%;--ty:7.5%!important}}   /* a smaller phone, so its foot is sunk a little more */
+
+/* ---------- arriving: the type rises from its mask lines, the phone settles, what floats pops into place; once ---------- */
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.14em;margin-bottom:-.14em}
+.w>span{display:inline-block}
+.js .sec .w>span{transform:translateY(112%);transition:transform .8s var(--ease);transition-delay:calc(var(--i)*40ms)}
+.js .sec .rise{clip-path:inset(0 0 100% 0);transition:clip-path .8s var(--ease) .3s}
+.js .sec .phone{transform:translate3d(0,calc(var(--ty,0%) + 16%),0) rotateX(calc(var(--rx,0deg) + 12deg)) rotateY(calc(var(--ry,0deg) * 1.7)) rotateZ(var(--rz,0deg));transition:transform 1.25s var(--ease)}
+.js .sec .float{transform:rotate(var(--r,0deg)) scale(0);transition:transform .7s var(--snap);transition-delay:calc(var(--k,0)*110ms + .25s)}
+.js .sec .cv{transform:scale(0);transition:transform .5s var(--snap);transition-delay:var(--d,0s)}
+.js .sec.in .w>span{transform:none}
+.js .sec.in .rise{clip-path:inset(0)}
+.js .sec.in .phone{transform:translate3d(0,var(--ty,0%),0) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) rotateZ(var(--rz,0deg))}
+.js .sec.in .float{transform:rotate(var(--r,0deg)) scale(1)}
+.js .sec.in .cv{transform:none}
+/* the languages: four shows' covers beside the phone; the one whose episode is on the screen steps forward */
+.js .sec.in .float.lang{transform:rotate(var(--r,0deg)) scale(.88);transition:transform .6s var(--snap)}
+.js .sec.in .float.lang.on{transform:translate(calc(var(--o,0) * 10%),0) rotate(0deg) scale(1.12)}   /* the show playing steps forward and outward: it stays behind the phone and covers nothing of it */
+@media(max-width:899px){.js .sec.in .float.lang.on{transform:translate(calc(var(--o,0) * -4%),0) rotate(0deg) scale(1.12)}}   /* on a narrow page there is no room outside the cover: it grows and moves a little inward, so the window's edge never cuts it */
+/* the second wall's line waits until it is itself in view */
+.js .sec .late .w>span,.js .sec.in .late .w>span{transform:translateY(112%)}
+.js .sec .late.in .w>span{transform:none}
+/* the first phone faces the page while the covers fly in, then turns to its pose */
+.js .sec .phone.hero,.js .sec.in .phone.hero{transform:none;transition:transform .9s var(--ease)}
+.js .sec.in .phone.hero.tilt{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) rotateZ(var(--rz,0deg))}
+
+/* a section whose foot has reached the window's foot is complete at once: whatever of its entrance is still moving is finished */
+.js .sec.done .cv,.js .sec.done .float,.js .sec.done .phone,.js .sec.done .w>span,.js .sec.done .rise,.js .sec.done .film .still{transition:none!important}
+
+/* close: the lockup and the promise at the middle, as the page began */
+#close{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center;padding-block:clamp(70px,10vw,150px)}
+#close .txt{width:100%}
+#close .lock{height:44px;width:auto;margin:0 auto 28px}
+#close .film{width:min(680px,100%);margin:0 auto}
+
+/* support and footer */
+#support{max-width:1440px;margin:0 auto;padding:clamp(30px,5vw,60px) var(--edge) 30px}
+#support .in{border-top:1px solid var(--line);padding-top:clamp(34px,5vw,60px);display:grid;gap:16px}
+#support h2{font-size:clamp(28px,3vw,40px)}
+#support .mail{font-family:var(--display);font-weight:600;font-size:clamp(19px,1.9vw,26px);letter-spacing:-.02em;color:var(--ink);word-break:break-word}
+#support p{margin:0;color:var(--soft);max-width:62ch}
+.foot{max-width:1440px;margin:0 auto;padding:10px var(--edge) 44px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font-size:14.5px;color:var(--soft)}
+.foot .lock{height:26px;width:auto;margin-right:auto}
+
+/* documents */
+.doc{max-width:74ch;margin:0 auto;padding:56px var(--edge) 40px}
+.doc h1{font-size:clamp(40px,6vw,72px)}
+.doc h2{font-size:clamp(22px,2.6vw,28px);letter-spacing:-.02em;line-height:1.15;margin:44px 0 10px}
+.doc p,.doc li{color:#3d342b}.doc .lede{font-size:20px;line-height:1.45;color:var(--ink);margin-top:18px}
+.doc .fine{font-size:14px;color:var(--soft);margin:14px 0 0}
+.doc .summary{background:var(--night);border-radius:22px;padding:24px 26px;margin:30px 0}
+.doc .summary p,.doc .summary li{color:var(--moon)}.doc .summary ul{margin:8px 0 0;padding-left:20px}.doc li{margin-bottom:8px}
+.doc .tablebox{overflow-x:auto;margin:18px 0}
+.doc table{border-collapse:collapse;width:100%;min-width:520px;font-size:15.5px}
+.doc th{font-family:var(--display);font-weight:600;text-align:left;padding:10px 14px 10px 0;border-bottom:2px solid var(--ink)}
+.doc td{vertical-align:top;padding:12px 14px 12px 0;border-bottom:1px solid var(--line);width:50%}
+.lost{min-height:70svh;display:grid;place-content:center;justify-items:start;padding:0 var(--edge);gap:18px}
+.lost h1{font-size:clamp(44px,8vw,110px)}
+/* the pointer: every phone leans a little toward it, and the covers shift a little the other way, the nearer ones more */
+:root{--mx:0;--my:0;--ma:0deg}
+@media(hover:hover) and (pointer:fine){
+  .js .phone{rotate:calc(var(--my) * -1) var(--mx) 0 var(--ma);translate:calc(var(--mx) * 8px) calc(var(--my) * 6px)}
+  .js .phone.hero:not(.tilt){rotate:none;translate:none}
+  .js .cv{translate:calc(var(--mx) * var(--pz,-5px)) calc(var(--my) * var(--pz,-5px))}
+  .js .cv:nth-child(3n){--pz:-9px}.js .cv:nth-child(4n+1){--pz:-2px}
+  .js .float{translate:calc(var(--mx) * var(--pz,-8px)) calc(var(--my) * var(--pz,-8px) * .75)}   /* each by its own depth (--pz, set in the page): they move as separate things */
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* the store's end frame (#storeend) carries the hidden attribute and only store mode shows it; without this rule .sec's display showed it at the foot of the page (a fault of 14 October, found at 16:20 when the site was photographed before and after; the page as Koko approved it has no such section) */
+.sec[hidden]{display:none}
+
+/* the Plus mark (Koko, 14 October 2026: "more like an asterisk to the statement/header/CTA to signify that the feature is available on the Plus tier"; guidelines section 8, item 7): a small capsule hung after the
+   last word of a Plus headline, raised to the top of the capitals, taking no room in the line, in place of the badge that stood above the headline */
+.pm{display:inline-block;position:relative;width:0;height:0;vertical-align:top;white-space:nowrap}
+.pm>span{position:absolute;left:.08em;top:.19em;font:600 .2em/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;padding:.55em .85em .45em;border-radius:99px;background:var(--deep);color:var(--moon);white-space:nowrap;transform-origin:0 50%}
+.band:not(.sand):not(.ivory) .pm>span{background:var(--coral);color:var(--night)}
+.js .sec .pm>span{transform:scale(0);transition:transform .5s var(--snap) .9s}
+.js .sec.in .pm>span{transform:none}
+.js .sec.done .pm>span{transition:none!important}
+/* the one line at the head of the privacy policy and the terms until the legal name and the date are given (Plan, 15 Oct 20:33) */
+.draftnote{display:inline-block;margin:0 0 20px;padding:8px 14px;border-radius:12px;background:var(--surface);color:var(--soft);font:600 13.5px/1.35 var(--ui)}
